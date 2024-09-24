@@ -1,7 +1,7 @@
 plugins {
+    id 'org.springframework.boot' version '2.7.18'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
     id 'java'
-    id 'org.springframework.boot' version '3.3.4'
-    id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'com.bookshop'
@@ -14,8 +14,8 @@ java {
 }
 
 ext {
-    set('springCloudVersion', "2023.0.3")
-    set('testcontainersVersion', "1.17.3")
+    set('springCloudVersion', "2021.0.9")
+    set('testcontainersVersion', "1.19.8")
 }
 
 repositories {
@@ -29,19 +29,20 @@ configurations {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.retry:spring-retry'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-    runtimeOnly group: 'org.flywaydb', name: 'flyway-database-postgresql', version: '10.10.0'
-    runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.retry:spring-retry'
+    implementation 'org.flywaydb:flyway-core'
+
+    runtimeOnly 'org.postgresql:postgresql'
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
     testImplementation 'org.testcontainers:postgresql'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }
 
 dependencyManagement {
@@ -61,6 +62,18 @@ tasks.named('bootBuildImage') {
         builder = "ghcr.io/thomasvitale/java-builder-arm64"
     }
     builder = "paketobuildpacks/builder:tiny"
+}
+
+bootBuildImage {
+    imageName = "${project.name}"
+    environment = ["BP_JVM_VERSION" : "17.*"]
+    docker {
+        publishRegistry {
+            username = project.findProperty("registryUsername")
+            password = project.findProperty("registryToken")
+            url = project.findProperty("registryUrl")
+        }
+    }
 }
 
 bootRun {

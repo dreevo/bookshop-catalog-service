@@ -1,6 +1,18 @@
+server:
+  port: 9001
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 2s
+    keep-alive-timeout: 15s
+    threads:
+      max: 50
+      min-spare: 5
+
 spring:
   application:
     name: bookshop-catalog-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
   config:
     import: "optional:configserver:"
   cloud:
@@ -21,28 +33,26 @@ spring:
     hikari:
       connection-timeout: 2000
       maximum-pool-size: 5
-  lifecycle:
-    timeout-per-shutdown-phase: 15s
-server:
-  port: 9001
-  tomcat:
-    connection-timeout: 2s
-    keep-alive-timeout: 15s
-    threads:
-      max: 50
-      min-spare: 5
-  shutdown: graceful
-
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/bookshop
 
-bookshop:
-  greeting: Welcome to the local bookshop !
 management:
   endpoints:
     web:
       exposure:
-        include: refresh
+        include: health
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,redis
+
+bookshop:
+  greeting: Welcome to the local book catalog!
